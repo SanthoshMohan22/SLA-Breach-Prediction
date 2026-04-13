@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>                                             # Start-Process "Managers_Dashboard.html"
+<meta charset="UTF-8">                      
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Helpdesk Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f6f3;
+  --surface: #ffffff;
+  --surface2: #f2f1ee;
+  --surface3: #eae9e5;
+  --border: #e2e0db;
+  --border-mid: #ccc9c2;
+  --text: #1a1915;
+  --text-muted: #7a7870;
+  --text-dim: #b5b2aa;
+  --hard: #c0392b;
+  --hard-bg: #fdf0ef;
+  --hard-border: #f5c6c2;
+  --hard-mid: #e8695f;
+  --med: #b45309;
+  --med-bg: #fef7ed;
+  --med-border: #fcd9a0;
+  --med-mid: #f59e0b;
+  --easy: #166534;
+  --easy-bg: #f0fdf4;
+  --easy-border: #bbf7d0;
+  --easy-mid: #22c55e;
+  --accent: #1a1915;
+  --mono: 'Geist Mono', monospace;
+  --display: 'Bricolage Grotesque', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--display);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+/* ── TOP NAV ── */
+.nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.nav-left { display: flex; align-items: center; gap: 20px; }
+.nav-logo {
+  font-size: 16px; font-weight: 800; letter-spacing: -0.5px;
+  color: var(--text); display: flex; align-items: center; gap: 8px;
+}
+.nav-logo-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--hard); animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+.nav-tag {
+  font-size: 11px; padding: 3px 10px; border-radius: 4px;
+  background: var(--surface2); color: var(--text-muted);
+  font-family: var(--mono); border: 1px solid var(--border);
+}
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-time {
+  font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+}
+.nav-badge {
+  font-size: 11px; padding: 4px 12px; border-radius: 4px;
+  background: var(--hard-bg); color: var(--hard);
+  border: 1px solid var(--hard-border); font-weight: 600;
+  font-family: var(--mono);
+  animation: badge-flash 3s infinite;
+}
+@keyframes badge-flash {
+  0%,80%,100% { opacity: 1; } 90% { opacity: 0.4; }
+}
+.nav-avatar {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: var(--text); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  min-height: calc(100vh - 56px);
+}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  display: flex; flex-direction: column; gap: 0;
+}
+.sidebar-section { padding: 0 20px 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.sidebar-section:last-child { border-bottom: none; margin-bottom: 0; }
+.sidebar-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--text-dim); font-family: var(--mono); margin-bottom: 12px;
+}
+
+/* Bin cards */
+.bin-cards { display: flex; flex-direction: column; gap: 8px; }
+.bin-card {
+  border-radius: 8px; padding: 12px 14px;
+  border: 1px solid; cursor: pointer;
+  transition: transform 0.15s;
+  position: relative; overflow: hidden;
+}
+.bin-card:hover { transform: translateX(2px); }
+.bin-card.active::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 0 2px 2px 0;
+}
+.bin-card.hard { background: var(--hard-bg); border-color: var(--hard-border); }
+.bin-card.hard.active::before { background: var(--hard); }
+.bin-card.med { background: var(--med-bg); border-color: var(--med-border); }
+.bin-card.med.active::before { background: var(--med-mid); }
+.bin-card.easy { background: var(--easy-bg); border-color: var(--easy-border); }
+.bin-card.easy.active::before { background: var(--easy-mid); }
+.bin-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.bin-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--mono); }
+.bin-name.hard { color: var(--hard); }
+.bin-name.med { color: var(--med); }
+.bin-name.easy { color: var(--easy); }
+.bin-count { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+.bin-count.hard { color: var(--hard); }
+.bin-count.med { color: var(--med); }
+.bin-count.easy { color: var(--easy); }
+.bin-sub { font-size: 10px; color: var(--text-muted); font-family: var(--mono); }
+
+/* SLA bar */
+.sla-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sla-label { font-size: 12px; color: var(--text-muted); }
+.sla-val { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+.sla-bar-track { height: 6px; background: var(--surface3); border-radius: 99px; overflow: hidden; }
+.sla-bar-fill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+
+/* Model stats */
+.model-stats { display: flex; flex-direction: column; gap: 8px; }
+.model-stat { display: flex; justify-content: space-between; align-items: center; }
+.model-stat-label { font-size: 12px; color: var(--text-muted); }
+.model-stat-val { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); }
+
+/* ── MAIN CENTER ── */
+.main { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+/* Toolbar */
+.toolbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.toolbar-left { display: flex; align-items: center; gap: 10px; }
+.toolbar-title { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.toolbar-count {
+  font-size: 12px; padding: 3px 10px; border-radius: 4px;
+  background: var(--surface3); color: var(--text-muted);
+  font-family: var(--mono); border: 1px solid var(--border);
+}
+.toolbar-right { display: flex; gap: 8px; }
+.filter-btn {
+  padding: 7px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface);
+  cursor: pointer; color: var(--text-muted); font-family: var(--display);
+  transition: all 0.15s;
+}
+.filter-btn:hover { background: var(--surface2); color: var(--text); }
+.filter-btn.active-hard { background: var(--hard-bg); border-color: var(--hard-border); color: var(--hard); }
+.filter-btn.active-med { background: var(--med-bg); border-color: var(--med-border); color: var(--med); }
+.filter-btn.active-easy { background: var(--easy-bg); border-color: var(--easy-border); color: var(--easy); }
+.filter-btn.active-all { background: var(--text); color: white; border-color: var(--text); }
+
+/* Ticket list */
+.ticket-list { display: flex; flex-direction: column; gap: 6px; }
+
+.ticket-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 16px;
+  display: grid; grid-template-columns: auto 1fr auto auto auto;
+  align-items: center; gap: 14px;
+  cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+  animation: slideIn 0.3s ease both;
+}
+.ticket-row:hover { border-color: var(--border-mid); transform: translateX(2px); }
+.ticket-row.selected { border-color: var(--text); }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.ticket-row.new-ticket { animation: newTicket 0.5s ease both; }
+@keyframes newTicket {
+  0% { opacity: 0; transform: translateY(-10px) scale(0.98); background: #fffbeb; }
+  60% { background: #fffbeb; }
+  100% { opacity: 1; transform: translateY(0) scale(1); background: var(--surface); }
+}
+
+.ticket-bin-badge {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+}
+.ticket-bin-badge.hard { background: var(--hard); }
+.ticket-bin-badge.med { background: var(--med-mid); }
+.ticket-bin-badge.easy { background: var(--easy-mid); }
+
+.ticket-main { min-width: 0; }
+.ticket-id { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-bottom: 2px; }
+.ticket-title { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ticket-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.ticket-chip {
+  font-size: 10px; padding: 3px 8px; border-radius: 4px;
+  font-family: var(--mono); font-weight: 600; white-space: nowrap;
+}
+.chip-hard { background: var(--hard-bg); color: var(--hard); border: 1px solid var(--hard-border); }
+.chip-med { background: var(--med-bg); color: var(--med); border: 1px solid var(--med-border); }
+.chip-easy { background: var(--easy-bg); color: var(--easy); border: 1px solid var(--easy-border); }
+
+.ticket-age { font-family: var(--mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+.ticket-age.danger { color: var(--hard); font-weight: 600; }
+
+.ticket-assign-btn {
+  padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface2);
+  cursor: pointer; color: var(--text-muted); font-family: var(--display);
+  transition: all 0.15s; white-space: nowrap;
+}
+.ticket-assign-btn:hover { background: var(--text); color: white; border-color: var(--text); }
+.ticket-assign-btn.assigned { background: var(--easy-bg); color: var(--easy); border-color: var(--easy-border); }
+
+/* Unassigned alert */
+.alert-bar {
+  background: var(--hard-bg); border: 1px solid var(--hard-border);
+  border-radius: 8px; padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  animation: alertPulse 3s infinite;
+}
+@keyframes alertPulse {
+  0%,100% { border-color: var(--hard-border); }
+  50% { border-color: var(--hard-mid); }
+}
+.alert-text { font-size: 12px; color: var(--hard); font-weight: 600; }
+.alert-sub { font-size: 11px; color: var(--hard); opacity: 0.7; margin-top: 1px; font-family: var(--mono); }
+.alert-action {
+  font-size: 11px; padding: 5px 12px; border-radius: 5px;
+  background: var(--hard); color: white; border: none; cursor: pointer;
+  font-family: var(--display); font-weight: 700;
+  transition: opacity 0.15s;
+}
+.alert-action:hover { opacity: 0.85; }
+
+/* ── RIGHT SIDEBAR ── */
+.right-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  padding: 24px 20px;
+  display: flex; flex-direction: column; gap: 24px;
+  overflow-y: auto;
+}
+.panel-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--text-dim); font-family: var(--mono); margin-bottom: 14px;
+}
+
+/* Engineer cards */
+.eng-cards { display: flex; flex-direction: column; gap: 10px; }
+.eng-card {
+  border: 1px solid var(--border); border-radius: 10px; padding: 14px;
+  cursor: pointer; transition: border-color 0.15s;
+  position: relative;
+}
+.eng-card:hover { border-color: var(--border-mid); }
+.eng-card.overloaded { border-color: var(--hard-border); }
+.eng-card.available { border-color: var(--easy-border); }
+.eng-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.eng-avatar {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 800;
+}
+.eng-info { flex: 1; min-width: 0; }
+.eng-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.eng-role { font-size: 10px; color: var(--text-muted); font-family: var(--mono); }
+.eng-status {
+  font-size: 10px; padding: 2px 8px; border-radius: 3px;
+  font-family: var(--mono); font-weight: 600;
+}
+.status-overloaded { background: var(--hard-bg); color: var(--hard); }
+.status-busy { background: var(--med-bg); color: var(--med); }
+.status-available { background: var(--easy-bg); color: var(--easy); }
+.eng-load-label { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.eng-load-text { font-size: 11px; color: var(--text-muted); }
+.eng-load-num { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+.eng-load-track { height: 5px; background: var(--surface3); border-radius: 99px; overflow: hidden; margin-bottom: 8px; }
+.eng-load-fill { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+.eng-ticket-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.eng-chip {
+  font-size: 10px; padding: 2px 7px; border-radius: 3px;
+  font-family: var(--mono);
+}
+
+/* Assign modal overlay */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(26,25,21,0.5); z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 14px;
+  border: 1px solid var(--border-mid);
+  padding: 28px; width: 420px; max-width: 90vw;
+  animation: modalIn 0.2s ease both;
+}
+@keyframes modalIn { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; }
+.modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; font-family: var(--mono); }
+.modal-eng-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.modal-eng-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.15s;
+}
+.modal-eng-row:hover { border-color: var(--text); background: var(--surface2); }
+.modal-eng-row.recommended { border-color: var(--easy-mid); background: var(--easy-bg); }
+.modal-rec-tag {
+  font-size: 10px; padding: 1px 6px; background: var(--easy); color: white;
+  border-radius: 3px; font-family: var(--mono); font-weight: 600; margin-left: auto;
+}
+.modal-eng-name { font-size: 13px; font-weight: 700; flex: 1; }
+.modal-eng-load { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
+.modal-close {
+  width: 100%; padding: 10px; border-radius: 7px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); cursor: pointer; font-family: var(--display);
+  font-size: 13px; transition: background 0.15s;
+}
+.modal-close:hover { background: var(--surface2); }
+
+/* Incoming feed */
+.feed-list { display: flex; flex-direction: column; gap: 6px; }
+.feed-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  background: var(--surface2); border-radius: 6px; border: 1px solid var(--border);
+  animation: feedIn 0.4s ease both;
+}
+@keyframes feedIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+.feed-id { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+.feed-title { font-size: 11px; color: var(--text); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed-time { font-family: var(--mono); font-size: 10px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <div class="nav-logo-dot"></div>
+      Command Center
+    </div>
+    <div class="nav-tag">SLA Predictor v1.0 · XGBoost</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-time" id="navTime">--:--:--</div>
+    <div class="nav-badge" id="alertBadge">3 HARD UNASSIGNED</div>
+    <div class="nav-avatar">MG</div>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Ticket bins</div>
+      <div class="bin-cards">
+        <div class="bin-card hard active" onclick="filterBin('hard')">
+          <div class="bin-card-top">
+            <div class="bin-name hard">Hard</div>
+            <div class="bin-count hard" id="countHard">41</div>
+          </div>
+          <div class="bin-sub" id="subHard">12 unassigned · SLA at risk</div>
+        </div>
+        <div class="bin-card med" onclick="filterBin('med')">
+          <div class="bin-card-top">
+            <div class="bin-name med">Medium</div>
+            <div class="bin-count med" id="countMed">187</div>
+          </div>
+          <div class="bin-sub">Auto-routed to mid-level</div>
+        </div>
+        <div class="bin-card easy" onclick="filterBin('easy')">
+          <div class="bin-card-top">
+            <div class="bin-name easy">Easy</div>
+            <div class="bin-count easy" id="countEasy">342</div>
+          </div>
+          <div class="bin-sub">Auto-routed to juniors</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">SLA health</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <div class="sla-row">
+            <span class="sla-label">Within SLA</span>
+            <span class="sla-val" style="color:var(--easy)">18%</span>
+          </div>
+          <div class="sla-bar-track"><div class="sla-bar-fill" style="width:18%;background:var(--easy-mid)"></div></div>
+        </div>
+        <div>
+          <div class="sla-row">
+            <span class="sla-label">At risk (36–48h)</span>
+            <span class="sla-val" style="color:var(--med)">24%</span>
+          </div>
+          <div class="sla-bar-track"><div class="sla-bar-fill" style="width:24%;background:var(--med-mid)"></div></div>
+        </div>
+        <div>
+          <div class="sla-row">
+            <span class="sla-label">Breached</span>
+            <span class="sla-val" style="color:var(--hard)">58%</span>
+          </div>
+          <div class="sla-bar-track"><div class="sla-bar-fill" style="width:58%;background:var(--hard)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Model stats</div>
+      <div class="model-stats">
+        <div class="model-stat"><span class="model-stat-label">Model</span><span class="model-stat-val">XGBoost</span></div>
+        <div class="model-stat"><span class="model-stat-label">Accuracy</span><span class="model-stat-val">82%</span></div>
+        <div class="model-stat"><span class="model-stat-label">AUC-ROC</span><span class="model-stat-val">0.88</span></div>
+        <div class="model-stat"><span class="model-stat-label">Threshold</span><span class="model-stat-val">48h</span></div>
+        <div class="model-stat"><span class="model-stat-label">Predictions today</span><span class="model-stat-val" id="predCount">1,247</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CENTER -->
+  <main class="main">
+
+    <div class="alert-bar" id="alertBar">
+      <div>
+        <div class="alert-text">3 Hard tickets unassigned — SLA breach imminent</div>
+        <div class="alert-sub">T-1047, T-1052, T-1058 · oldest is 61h old</div>
+      </div>
+      <button class="alert-action" onclick="autoAssignAll()">Auto-assign all</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="toolbar-title" id="toolbarTitle">Hard tickets</div>
+        <div class="toolbar-count" id="toolbarCount">41 tickets</div>
+      </div>
+      <div class="toolbar-right">
+        <button class="filter-btn active-hard" id="fb-all" onclick="filterBin('all')">All</button>
+        <button class="filter-btn active-hard" id="fb-hard" onclick="filterBin('hard')">Hard</button>
+        <button class="filter-btn" id="fb-med" onclick="filterBin('med')">Medium</button>
+        <button class="filter-btn" id="fb-easy" onclick="filterBin('easy')">Easy</button>
+      </div>
+    </div>
+
+    <div class="ticket-list" id="ticketList"></div>
+
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+
+    <div>
+      <div class="panel-title">Engineer workload</div>
+      <div class="eng-cards" id="engCards"></div>
+    </div>
+
+    <div>
+      <div class="panel-title">Live incoming feed</div>
+      <div class="feed-list" id="feedList"></div>
+    </div>
+
+  </aside>
+
+</div>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Assign ticket</div>
+    <div class="modal-sub" id="modalSub">Select engineer to assign</div>
+    <div class="modal-eng-list" id="modalEngList"></div>
+    <button class="modal-close" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const engineers = [
+  { id:'ak', name:'Arjun K.',   initials:'AK', role:'Senior Eng',   color:'#c0392b', colorBg:'#fdf0ef', maxLoad:6, tickets:[], level:'senior' },
+  { id:'rs', name:'Riya S.',    initials:'RS', role:'Senior Eng',   color:'#b45309', colorBg:'#fef7ed', maxLoad:6, tickets:[], level:'senior' },
+  { id:'pm', name:'Priya M.',   initials:'PM', role:'Mid Eng',      color:'#166534', colorBg:'#f0fdf4', maxLoad:8, tickets:[], level:'mid'    },
+  { id:'vn', name:'Vikram N.',  initials:'VN', role:'Mid Eng',      color:'#1d4ed8', colorBg:'#eff6ff', maxLoad:8, tickets:[], level:'mid'    },
+  { id:'sz', name:'Sara Z.',    initials:'SZ', role:'Junior Eng',   color:'#6d28d9', colorBg:'#f5f3ff', maxLoad:12,tickets:[], level:'junior' },
+];
+
+const TICKET_TITLES = [
+  'DB connection pool exhausted on prod',
+  'Auth service returning 500 on OAuth flow',
+  'Webhook not triggering on ticket update',
+  'API rate limit not resetting after window',
+  'Email notifications completely stopped',
+  'SAML SSO broken for enterprise tenant',
+  'File upload silently failing above 10MB',
+  'Billing module showing wrong invoice total',
+  'Search indexing stuck — no results returning',
+  'Customer data export timing out',
+  'Password reset emails going to spam',
+  'UI freezes on dashboard load for some users',
+  'Mobile SDK crash on Android 14',
+  'Two-factor auth loop — users locked out',
+  'CSV import dropping last 100 rows silently',
+  'Widget not loading on Safari 17',
+  'Priority filter not saving in user prefs',
+  'Bulk close action only closing 10 tickets',
+  'Attachment preview broken in Firefox',
+  'Sort order resetting on page refresh',
+  'Date picker not accepting manual entry',
+  'Notification badge not clearing after read',
+  'Dark mode toggle reverting on reload',
+  'Comment timestamps showing UTC not local',
+];
+
+const ISSUE_TYPES = ['Bug','Ticket','Subtask','Epic','Story','Service'];
+const PRIORITIES  = ['Blocker','High','Medium','Low'];
+
+let allTickets = [];
+let currentFilter = 'hard';
+let selectedTicketId = null;
+let ticketCounter = 1040;
+let predCount = 1247;
+
+function makeBin(priority, hours) {
+  if (priority === 'Blocker') return 'hard';
+  if (priority === 'High')    return hours > 36 ? 'hard' : 'med';
+  if (priority === 'Medium')  return hours > 60 ? 'med' : 'easy';
+  return 'easy';
+}
+
+function genTicket(forceHard) {
+  ticketCounter++;
+  const priority = forceHard
+    ? (Math.random() > 0.5 ? 'Blocker' : 'High')
+    : PRIORITIES[Math.floor(Math.random() * PRIORITIES.length)];
+  const hours = Math.floor(Math.random() * 90) + 1;
+  const bin = makeBin(priority, hours);
+  return {
+    id: 'T-' + ticketCounter,
+    title: TICKET_TITLES[Math.floor(Math.random() * TICKET_TITLES.length)],
+    type: ISSUE_TYPES[Math.floor(Math.random() * ISSUE_TYPES.length)],
+    priority,
+    bin,
+    hours,
+    assignedTo: null,
+    isNew: true,
+  };
+}
+
+// Seed initial tickets
+for (let i = 0; i < 8; i++) {
+  const t = genTicket(i < 5);
+  t.isNew = false;
+  if (i < 3) t.assignedTo = engineers[i % 2].id;
+  allTickets.push(t);
+  if (t.assignedTo) {
+    const eng = engineers.find(e => e.id === t.assignedTo);
+    if (eng) eng.tickets.push(t.id);
+  }
+}
+
+// ── RENDER ──
+function render() {
+  renderTickets();
+  renderEngineers();
+  renderBinCounts();
+  renderAlertBadge();
+}
+
+function renderBinCounts() {
+  const hard  = allTickets.filter(t => t.bin === 'hard').length;
+  const med   = allTickets.filter(t => t.bin === 'med').length;
+  const easy  = allTickets.filter(t => t.bin === 'easy').length;
+  const unassignedHard = allTickets.filter(t => t.bin === 'hard' && !t.assignedTo).length;
+  document.getElementById('countHard').textContent = hard;
+  document.getElementById('countMed').textContent  = med;
+  document.getElementById('countEasy').textContent = easy;
+  document.getElementById('subHard').textContent   = unassignedHard + ' unassigned · SLA at risk';
+}
+
+function renderAlertBadge() {
+  const n = allTickets.filter(t => t.bin === 'hard' && !t.assignedTo).length;
+  const badge = document.getElementById('alertBadge');
+  const bar   = document.getElementById('alertBar');
+  badge.textContent = n + ' HARD UNASSIGNED';
+  badge.style.display = n > 0 ? '' : 'none';
+  bar.style.display   = n > 0 ? '' : 'none';
+  if (n > 0) {
+    const ids = allTickets.filter(t=>t.bin==='hard'&&!t.assignedTo).map(t=>t.id).slice(0,3).join(', ');
+    const oldest = Math.max(...allTickets.filter(t=>t.bin==='hard'&&!t.assignedTo).map(t=>t.hours));
+    bar.querySelector('.alert-sub').textContent = ids + ' · oldest is ' + oldest + 'h old';
+    document.querySelector('.alert-text').textContent = n + ' Hard ticket' + (n>1?'s':'') + ' unassigned — SLA breach imminent';
+  }
+}
+
+function renderTickets() {
+  const list = document.getElementById('ticketList');
+  let filtered = currentFilter === 'all'
+    ? allTickets
+    : allTickets.filter(t => t.bin === currentFilter);
+
+  // Sort: unassigned hard first, then by hours desc
+  filtered = filtered.sort((a,b) => {
+    if (a.bin==='hard' && !a.assignedTo && !(b.bin==='hard'&&!b.assignedTo)) return -1;
+    if (b.bin==='hard' && !b.assignedTo && !(a.bin==='hard'&&!a.assignedTo)) return 1;
+    return b.hours - a.hours;
+  });
+
+  // Update toolbar
+  const titles = { all:'All tickets', hard:'Hard tickets', med:'Medium tickets', easy:'Easy tickets' };
+  document.getElementById('toolbarTitle').textContent = titles[currentFilter];
+  document.getElementById('toolbarCount').textContent = filtered.length + ' tickets';
+
+  list.innerHTML = filtered.map(t => {
+    const eng = t.assignedTo ? engineers.find(e => e.id === t.assignedTo) : null;
+    const ageClass = t.hours > 48 ? 'danger' : '';
+    const chipClass = 'chip-' + t.bin;
+    const binLabel = t.bin === 'hard' ? 'HARD' : t.bin === 'med' ? 'MED' : 'EASY';
+    const assignLabel = eng ? eng.name : 'Assign';
+    const assignedClass = eng ? 'assigned' : '';
+    return `<div class="ticket-row ${t.isNew?'new-ticket':''} ${selectedTicketId===t.id?'selected':''}" onclick="selectTicket('${t.id}')">
+      <div class="ticket-bin-badge ${t.bin}"></div>
+      <div class="ticket-main">
+        <div class="ticket-id">${t.id} · ${t.type} · ${t.priority}</div>
+        <div class="ticket-title">${t.title}</div>
+        <div class="ticket-meta">${t.priority} priority</div>
+      </div>
+      <div class="ticket-chip ${chipClass}">${binLabel}</div>
+      <div class="ticket-age ${ageClass}">${t.hours}h</div>
+      <button class="ticket-assign-btn ${assignedClass}" onclick="event.stopPropagation(); openAssign('${t.id}')">${assignLabel}</button>
+    </div>`;
+  }).join('');
+
+  // Update filter buttons
+  ['all','hard','med','easy'].forEach(k => {
+    const btn = document.getElementById('fb-' + k);
+    btn.className = 'filter-btn';
+    if (k === currentFilter) {
+      if (k==='hard') btn.className = 'filter-btn active-hard';
+      else if (k==='med') btn.className = 'filter-btn active-med';
+      else if (k==='easy') btn.className = 'filter-btn active-easy';
+      else btn.className = 'filter-btn active-all';
+    }
+  });
+}
+
+function renderEngineers() {
+  const el = document.getElementById('engCards');
+  el.innerHTML = engineers.map(eng => {
+    const load = eng.tickets.length;
+    const pct  = Math.min(100, Math.round(load / eng.maxLoad * 100));
+    const barColor = pct > 80 ? 'var(--hard)' : pct > 50 ? 'var(--med-mid)' : 'var(--easy-mid)';
+    const statusClass = pct > 80 ? 'overloaded' : pct < 30 ? 'available' : '';
+    const statusLabel = pct > 80 ? 'Overloaded' : pct < 30 ? 'Available' : 'Busy';
+    const statusChip  = pct > 80 ? 'status-overloaded' : pct < 30 ? 'status-available' : 'status-busy';
+    const myTickets   = allTickets.filter(t => t.assignedTo === eng.id);
+    const hardN = myTickets.filter(t=>t.bin==='hard').length;
+    const medN  = myTickets.filter(t=>t.bin==='med').length;
+    const easyN = myTickets.filter(t=>t.bin==='easy').length;
+    return `<div class="eng-card ${statusClass}">
+      <div class="eng-card-top">
+        <div class="eng-avatar" style="background:${eng.colorBg};color:${eng.color}">${eng.initials}</div>
+        <div class="eng-info">
+          <div class="eng-name">${eng.name}</div>
+          <div class="eng-role">${eng.role}</div>
+        </div>
+        <div class="eng-status ${statusChip}">${statusLabel}</div>
+      </div>
+      <div class="eng-load-label">
+        <span class="eng-load-text">Workload</span>
+        <span class="eng-load-num" style="color:${barColor}">${load}/${eng.maxLoad}</span>
+      </div>
+      <div class="eng-load-track">
+        <div class="eng-load-fill" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      <div class="eng-ticket-chips">
+        ${hardN > 0 ? `<span class="eng-chip chip-hard">${hardN} hard</span>` : ''}
+        ${medN  > 0 ? `<span class="eng-chip chip-med">${medN} med</span>`   : ''}
+        ${easyN > 0 ? `<span class="eng-chip chip-easy">${easyN} easy</span>` : ''}
+        ${load === 0 ? `<span class="eng-chip" style="background:var(--surface2);color:var(--text-muted)">No tickets</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── INTERACTIONS ──
+function filterBin(bin) {
+  currentFilter = bin;
+  renderTickets();
+  document.querySelectorAll('.bin-card').forEach(c => c.classList.remove('active'));
+  if (bin !== 'all') document.querySelector('.bin-card.' + (bin==='med'?'med':bin)).classList.add('active');
+}
+
+function selectTicket(id) {
+  selectedTicketId = id;
+  renderTickets();
+}
+
+let currentAssignTicketId = null;
+function openAssign(ticketId) {
+  currentAssignTicketId = ticketId;
+  const t = allTickets.find(t => t.id === ticketId);
+  document.getElementById('modalTitle').textContent = 'Assign ' + t.id;
+  document.getElementById('modalSub').textContent   = t.title.slice(0, 50) + (t.title.length > 50 ? '...' : '') + ' · ' + t.bin.toUpperCase();
+
+  // Sort engineers: available seniors first for hard, mid for med
+  const sorted = [...engineers].sort((a,b) => {
+    const la = a.tickets.length / a.maxLoad;
+    const lb = b.tickets.length / b.maxLoad;
+    return la - lb;
+  });
+
+  const recommended = sorted[0].id;
+
+  document.getElementById('modalEngList').innerHTML = sorted.map(eng => {
+    const pct = Math.round(eng.tickets.length / eng.maxLoad * 100);
+    const isRec = eng.id === recommended && t.bin === 'hard' && eng.level === 'senior' ||
+                  eng.id === recommended;
+    return `<div class="modal-eng-row ${isRec ? 'recommended' : ''}" onclick="assignTicket('${ticketId}','${eng.id}')">
+      <div class="eng-avatar" style="background:${eng.colorBg};color:${eng.color};width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">${eng.initials}</div>
+      <div>
+        <div class="modal-eng-name">${eng.name}</div>
+        <div class="modal-eng-load">${eng.role} · ${eng.tickets.length}/${eng.maxLoad} tickets · ${pct}% load</div>
+      </div>
+      ${isRec ? '<span class="modal-rec-tag">Recommended</span>' : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  currentAssignTicketId = null;
+}
+
+function assignTicket(ticketId, engId) {
+  const t = allTickets.find(t => t.id === ticketId);
+  // Remove from old engineer
+  if (t.assignedTo) {
+    const old = engineers.find(e => e.id === t.assignedTo);
+    if (old) old.tickets = old.tickets.filter(id => id !== ticketId);
+  }
+  t.assignedTo = engId;
+  const eng = engineers.find(e => e.id === engId);
+  if (!eng.tickets.includes(ticketId)) eng.tickets.push(ticketId);
+  closeModal();
+  render();
+}
+
+function autoAssignAll() {
+  const unassigned = allTickets.filter(t => t.bin === 'hard' && !t.assignedTo);
+  unassigned.forEach(t => {
+    const seniors = engineers.filter(e => e.level === 'senior');
+    const least = seniors.sort((a,b) => (a.tickets.length/a.maxLoad) - (b.tickets.length/b.maxLoad))[0];
+    if (least) {
+      t.assignedTo = least.id;
+      least.tickets.push(t.id);
+    }
+  });
+  render();
+}
+
+// ── LIVE FEED ──
+const feedMessages = [
+  { title:'T-1061 API timeout on /v2/reports', bin:'hard' },
+  { title:'T-1062 Password reset email delay', bin:'easy' },
+  { title:'T-1063 Webhook retry logic failing', bin:'med' },
+  { title:'T-1064 Login loop for SSO users', bin:'hard' },
+  { title:'T-1065 CSV export not triggering', bin:'med' },
+  { title:'T-1066 Dashboard 503 intermittently', bin:'hard' },
+  { title:'T-1067 Notification badge broken', bin:'easy' },
+];
+let feedIdx = 0;
+function addFeedItem() {
+  const item = feedMessages[feedIdx % feedMessages.length];
+  feedIdx++;
+  const el = document.getElementById('feedList');
+  const dotColor = item.bin==='hard'?'var(--hard)':item.bin==='med'?'var(--med-mid)':'var(--easy-mid)';
+  const chip = item.bin==='hard'?'chip-hard':item.bin==='med'?'chip-med':'chip-easy';
+  const label = item.bin==='hard'?'HARD':item.bin==='med'?'MED':'EASY';
+  const div = document.createElement('div');
+  div.className = 'feed-item';
+  div.innerHTML = `<div style="width:6px;height:6px;border-radius:50%;background:${dotColor};flex-shrink:0"></div>
+    <span class="feed-title">${item.title}</span>
+    <span class="ticket-chip ${chip}" style="font-size:9px;padding:2px 6px">${label}</span>
+    <span class="feed-time">now</span>`;
+  el.insertBefore(div, el.firstChild);
+  if (el.children.length > 5) el.removeChild(el.lastChild);
+  // Update pred count
+  predCount++;
+  document.getElementById('predCount').textContent = predCount.toLocaleString();
+}
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  document.getElementById('navTime').textContent =
+    now.toLocaleTimeString('en-GB', { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── AUTO INCOMING TICKETS ──
+function incomingTicket() {
+  const t = genTicket(Math.random() > 0.6);
+  t.isNew = true;
+  allTickets.unshift(t);
+  addFeedItem();
+  // Cap list
+  if (allTickets.length > 60) allTickets.pop();
+  render();
+  setTimeout(() => { t.isNew = false; }, 800);
+}
+setInterval(incomingTicket, 4500);
+
+// ── INIT ──
+addFeedItem(); addFeedItem(); addFeedItem(); addFeedItem(); addFeedItem();
+render();
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+</body>
+</html>
